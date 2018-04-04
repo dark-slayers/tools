@@ -1,0 +1,16 @@
+HHHHHHHHH     HHHHHHHHHYYYYYYY       YYYYYYY       CCCCCCCCCCCCC
+H:::::::H     H:::::::HY:::::Y       Y:::::Y    CCC::::::::::::C
+H:::::::H     H:::::::HY:::::Y       Y:::::Y  CC:::::::::::::::C
+HH::::::H     H::::::HHY::::::Y     Y::::::Y C:::::CCCCCCCC::::C
+  H:::::H     H:::::H  YYY:::::Y   Y:::::YYYC:::::C       CCCCCC
+  H:::::H     H:::::H     Y:::::Y Y:::::Y  C:::::C              
+  H::::::HHHHH::::::H      Y:::::Y:::::Y   C:::::C              
+  H:::::::::::::::::H       Y:::::::::Y    C:::::C              
+  H:::::::::::::::::H        Y:::::::Y     C:::::C              
+  H::::::HHHHH::::::H         Y:::::Y      C:::::C              
+  H:::::H     H:::::H         Y:::::Y      C:::::C              
+  H:::::H     H:::::H         Y:::::Y       C:::::C       CCCCCC
+HH::::::H     H::::::HH       Y:::::Y        C:::::CCCCCCCC::::C
+H:::::::H     H:::::::H    YYYY:::::YYYY      CC:::::::::::::::C
+H:::::::H     H:::::::H    Y:::::::::::Y        CCC::::::::::::C
+HHHHHHHHH     HHHHHHHHH    YYYYYYYYYYYYY           CCCCCCCCCCCCC

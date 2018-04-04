@@ -1,4 +1,4 @@
-package person.liuxx.tools.config;
+package ${packagePath}.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -17,13 +17,14 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter
     @Override
     public void addViewControllers(ViewControllerRegistry registry)
     {
+        // registry.addViewController("/login").setViewName("login");
     }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry)
     {
         registry.addResourceHandler("/dev/**").addResourceLocations(
-                "file:E:/GitProject/toolspage/dist/");
+                "file:E:/GitProject/${projectName}/dist/");
         registry.addResourceHandler("/page/**").addResourceLocations("file:./page/");
         super.addResourceHandlers(registry);
     }

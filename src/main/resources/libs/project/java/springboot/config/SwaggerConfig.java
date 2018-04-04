@@ -1,4 +1,4 @@
-package person.liuxx.tools.config;
+package ${packagePath}.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +15,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 /**
  * @author 刘湘湘
  * @version 1.0.0<br>
- *          创建时间：2018年3月30日 下午3:02:34
+ *          创建时间：2017年7月31日 下午3:02:34
  * @since 1.0.0
  */
 @Configuration
@@ -27,17 +27,17 @@ public class SwaggerConfig
     {
         return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("person.liuxx.tools.controller"))
+                .apis(RequestHandlerSelectors.basePackage("${packagePath}.controller"))
                 .paths(PathSelectors.any())
                 .build();
     }
 
     private ApiInfo apiInfo()
     {
-        return new ApiInfoBuilder().title("tools Service APIs")
-                .description("tools Service ：http://localhost:9999/")
-                .termsOfServiceUrl("http://localhost:9999/")
-                .contact(new Contact("刘湘湘", "aa.aa.com", "23534878@qq.com"))
+        return new ApiInfoBuilder().title("${projectName} Service APIs")
+                .description("${projectName} Service ：http://localhost:8080/")
+                .termsOfServiceUrl("http://blog.didispace.com/")
+                .contact(new Contact("aa", "aa.aa.com", "aa@aa.com"))
                 .version("1.0")
                 .build();
     }
