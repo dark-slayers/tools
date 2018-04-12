@@ -12,6 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 import person.liuxx.tools.service.ProjectService;
 
@@ -21,6 +22,7 @@ import person.liuxx.tools.service.ProjectService;
  *          创建时间：2018年3月30日 下午4:28:42
  * @since 1.0.0
  */
+@Service
 public class ProjectServiceImpl implements ProjectService
 {
     private Logger log = LoggerFactory.getLogger(ProjectServiceImpl.class);
