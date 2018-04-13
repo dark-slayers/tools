@@ -1,5 +1,7 @@
 package person.liuxx.tools.controller;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +23,18 @@ public class ProjectController
     @Autowired
     private ProjectService projectService;
 
-    @GetMapping(value = "/project/springboot/")
+    @GetMapping(value = "/project/springboot/zipfile")
     @ResponseBody
     public ResponseEntity<Resource> springbootProject()
     {
         return projectService.springbootProject();
+    }
+
+    @GetMapping(value = "/project/react/zipfile")
+    @ResponseBody
+    public ResponseEntity<Resource> reactProject(HttpServletRequest request)
+    {
+
+        return projectService.reactProject(request);
     }
 }

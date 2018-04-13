@@ -3,7 +3,6 @@ package person.liuxx.tools.service.impl;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -76,9 +75,8 @@ public class HostsServiceImpl implements HostsService
                     .map(t -> t.getElementsByClass("blob-code blob-code-inner js-file-line"))
                     .orElse(new Elements());
             String text = tds.stream().map(td -> td.text()).collect(Collectors.joining("\n"));
-            InputStream is = new BufferedInputStream(new ByteArrayInputStream(text.getBytes(
-                    "UTF-8")));
-            Resource resource = new InputStreamResource(is);
+            Resource resource = new InputStreamResource(new BufferedInputStream(
+                    new ByteArrayInputStream(text.getBytes("UTF-8"))));
             ResponseEntity<Resource> result = ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''"
                             + URLEncoder.encode("hosts", "UTF-8") + "")

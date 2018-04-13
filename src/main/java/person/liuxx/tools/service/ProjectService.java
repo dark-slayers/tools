@@ -1,5 +1,7 @@
 package person.liuxx.tools.service;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
@@ -12,4 +14,6 @@ import org.springframework.http.ResponseEntity;
 public interface ProjectService
 {
     ResponseEntity<Resource> springbootProject();
+
+    ResponseEntity<Resource> reactProject(HttpServletRequest request);
 }
