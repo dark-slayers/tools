@@ -65,10 +65,11 @@ public class ProjectServiceImpl implements ProjectService
     @Override
     public ResponseEntity<Resource> reactProject(HttpServletRequest request)
     {
+        String projectName = "aa";
         ResponseEntity<Resource> result = null;
         Optional<ReactProject> op = Optional.ofNullable(elConfig)
                 .flatMap(el -> el.reactProjectPath())
-                .map(p -> new ReactProject("aa", p));
+                .map(p -> new ReactProject(projectName, "测试项目", p));
         try
         {
             PipedInputStream in = new PipedInputStream();
@@ -93,7 +94,7 @@ public class ProjectServiceImpl implements ProjectService
                 }).start();
                 while (!over.get())
                 {
-                    return resourceReponse(in, "aa.zip");
+                    return resourceReponse(in, projectName + ".zip");
                 }
             }
         } catch (IOException e)

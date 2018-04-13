@@ -1,0 +1,1 @@
+del .\dist /S/Q

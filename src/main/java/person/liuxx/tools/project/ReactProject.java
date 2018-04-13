@@ -32,12 +32,18 @@ public class ReactProject
     private String description;
     private String license;
 
-    public ReactProject(String projectName, Path path)
+    public ReactProject(String projectName, String description, Path path)
     {
         this.projectName = projectName;
         this.path = path;
-        this.description = "";
+        this.description = description;
         this.license = "MIT";
+    }
+
+    private InputStream readmeInputStream() throws IOException
+    {
+        String readme = "# " + projectName + "\n" + description;
+        return new ByteArrayInputStream(readme.getBytes("UTF-8"));
     }
 
     private InputStream packageJsonInputStream() throws IOException
@@ -117,6 +123,10 @@ public class ReactProject
         case "package.json":
             {
                 return packageJsonInputStream();
+            }
+        case "README.md":
+            {
+                return readmeInputStream();
             }
         }
         return Files.newInputStream(p);
