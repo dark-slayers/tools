@@ -27,17 +27,22 @@ public class ReactProject
 {
     private Logger log = LoggerFactory.getLogger(ReactProject.class);
     private final String LF = new String(Character.toChars(0x0A));
-    private String projectName;
-    private Path path;
-    private String description;
-    private String license;
+    private final String projectName;
+    private final Path path;
+    private final String description;
+    private final String license;
+
+    public ReactProject(String projectName, String description, Path path, String license)
+    {
+        this.projectName = projectName;
+        this.description = description;
+        this.path = path;
+        this.license = license;
+    }
 
     public ReactProject(String projectName, String description, Path path)
     {
-        this.projectName = projectName;
-        this.path = path;
-        this.description = description;
-        this.license = "MIT";
+        this(projectName, description, path, "MIT");
     }
 
     private InputStream readmeInputStream() throws IOException

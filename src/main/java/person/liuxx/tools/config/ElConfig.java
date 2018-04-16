@@ -27,10 +27,40 @@ public class ElConfig
     private Logger log = LoggerFactory.getLogger(ElConfig.class);
     @Value("classpath:libs/project/javascript/react")
     private Resource reactProjectPath;
+    @Value("classpath:libs/project/java/springboot")
+    private Resource springbootProjectPath;
 
+    /**
+     * 获取react项目模板文件夹路径
+     * 
+     * @author 刘湘湘
+     * @version 1.0.0<br>
+     *          创建时间：2018年4月16日 下午4:06:13
+     * @since 1.0.0
+     * @return
+     */
     public Optional<Path> reactProjectPath()
     {
-        return Optional.ofNullable(reactProjectPath).map(r -> getFile(r)).map(f -> f.toPath());
+        return getPath(reactProjectPath);
+    }
+
+    /**
+     * 获取springboot项目模板文件夹路径
+     * 
+     * @author 刘湘湘
+     * @version 1.0.0<br>
+     *          创建时间：2018年4月16日 下午4:06:48
+     * @since 1.0.0
+     * @return
+     */
+    public Optional<Path> springbootProjectPath()
+    {
+        return getPath(springbootProjectPath);
+    }
+
+    private Optional<Path> getPath(Resource resource)
+    {
+        return Optional.ofNullable(resource).map(r -> getFile(r)).map(f -> f.toPath());
     }
 
     private File getFile(Resource resource)
