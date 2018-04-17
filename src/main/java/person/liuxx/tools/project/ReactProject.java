@@ -91,4 +91,10 @@ public class ReactProject extends AbstractZipProject
     {
         return path;
     }
+
+    public String getProjectName()
+    {
+        return projectName;
+    }
+    
 }

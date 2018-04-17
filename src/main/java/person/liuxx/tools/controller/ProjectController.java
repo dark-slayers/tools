@@ -1,15 +1,20 @@
 package person.liuxx.tools.controller;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import person.liuxx.tools.dto.ReactProjectDTO;
+import person.liuxx.tools.exception.CreateZipException;
 import person.liuxx.tools.service.ProjectService;
+import person.liuxx.util.service.reponse.EmptySuccedResponse;
 
 /**
  * @author 刘湘湘
@@ -32,9 +37,22 @@ public class ProjectController
 
     @GetMapping(value = "/project/react/zipfile")
     @ResponseBody
-    public ResponseEntity<Resource> reactProject(HttpServletRequest request)
+    public ResponseEntity<Resource> reactProjectZipFileTest(HttpSession session)
     {
+        return projectService.getReactProject(session).<CreateZipException> orElseThrow(() ->
+        {
+            throw new CreateZipException("获取session中的ZIP文件资源失败，session id :" + session.getId());
+        });
+    }
 
-        return projectService.reactProject(request);
+    @PostMapping(value = "/project/react/sessionfile")
+    @ResponseBody
+    public EmptySuccedResponse reactProjectZipFile(@RequestBody ReactProjectDTO project,
+            HttpSession session)
+    {
+        return projectService.createSessionReactProject(project, session).<CreateZipException> orElseThrow(() ->
+        {
+            throw new CreateZipException("生成zip文件失败，生成参数：" + project);
+        });
     }
 }

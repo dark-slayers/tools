@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +24,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import person.liuxx.tools.config.ElConfig;
+import person.liuxx.tools.dto.ReactProjectDTO;
 import person.liuxx.tools.project.ReactProject;
 import person.liuxx.tools.service.ProjectService;
 import person.liuxx.util.log.LogUtil;
+import person.liuxx.util.service.reponse.EmptySuccedResponse;
 
 /**
  * @author 刘湘湘
@@ -38,6 +40,8 @@ import person.liuxx.util.log.LogUtil;
 public class ProjectServiceImpl implements ProjectService
 {
     private Logger log = LoggerFactory.getLogger(ProjectServiceImpl.class);
+    private static final String REACT_PROJECT = "React";
+    private static final String SPRING_BOOT_PROJECT = "SpringBoot";
     @Autowired
     private ElConfig elConfig;
 
@@ -61,14 +65,24 @@ public class ProjectServiceImpl implements ProjectService
         return result;
     }
 
-    @Override
-    public ResponseEntity<Resource> reactProject(HttpServletRequest request)
+    private ResponseEntity<Resource> resourceReponse(InputStream in, String fileName)
+            throws UnsupportedEncodingException
     {
-        String projectName = "aa";
-        ResponseEntity<Resource> result = null;
+        Resource resource = new InputStreamResource(in);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''"
+                        + URLEncoder.encode(fileName, "UTF-8"))
+                .header(HttpHeaders.CONTENT_TYPE, "application/octet-stream")
+                .body(resource);
+    }
+
+    @Override
+    public Optional<EmptySuccedResponse> createSessionReactProject(ReactProjectDTO project,
+            HttpSession session)
+    {
         Optional<ReactProject> op = Optional.ofNullable(elConfig)
                 .flatMap(el -> el.reactProjectPath())
-                .map(p -> new ReactProject(projectName, "测试项目", p));
+                .map(p -> project.mapToProject(p));
         try
         {
             PipedInputStream in = new PipedInputStream();
@@ -86,22 +100,24 @@ public class ProjectServiceImpl implements ProjectService
                         log.error(LogUtil.errorInfo(e));
                     }
                 }).start();
-                return resourceReponse(in, projectName + ".zip");
+                ResponseEntity<Resource> r = resourceReponse(in, op.get().getProjectName()
+                        + ".zip");
+                session.setAttribute(REACT_PROJECT, r);
+                return Optional.of(new EmptySuccedResponse());
             }
         } catch (IOException e)
         {
             log.error(LogUtil.errorInfo(e));
         }
-        return result;
+        return Optional.empty();
     }
 
-    private ResponseEntity<Resource> resourceReponse(InputStream in, String fileName)
-            throws UnsupportedEncodingException
+    @Override
+    public Optional<ResponseEntity<Resource>> getReactProject(HttpSession session)
     {
-        Resource resource = new InputStreamResource(in);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''"
-                        + URLEncoder.encode(fileName, "UTF-8"))
-                .body(resource);
+        @SuppressWarnings("unchecked")
+        ResponseEntity<Resource> r = (ResponseEntity<Resource>) session.getAttribute(REACT_PROJECT);
+        session.removeAttribute(REACT_PROJECT);
+        return Optional.ofNullable(r);
     }
 }
