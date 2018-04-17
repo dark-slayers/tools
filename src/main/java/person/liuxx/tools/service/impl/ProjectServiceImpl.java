@@ -74,28 +74,25 @@ public class ProjectServiceImpl implements ProjectService
         {
             PipedInputStream in = new PipedInputStream();
             final PipedOutputStream out = new PipedOutputStream(in);
-            AtomicBoolean over = new AtomicBoolean(false);
+            // AtomicBoolean over = new AtomicBoolean(false);
             if (op.isPresent())
             {
-                new Thread(new Runnable()
+                new Thread(() ->
                 {
-                    public void run()
+                    try
                     {
-                        try
-                        {
-                            out.write(op.get().createZipOutputStream().toByteArray());
-                            over.set(true);
-                            out.close();
-                        } catch (IOException e)
-                        {
-                            log.error(LogUtil.errorInfo(e));
-                        }
+                        out.write(op.get().createZipOutputStream().toByteArray());
+                        // over.set(true);
+                        out.close();
+                    } catch (IOException e)
+                    {
+                        log.error(LogUtil.errorInfo(e));
                     }
                 }).start();
-                while (!over.get())
-                {
-                    return resourceReponse(in, projectName + ".zip");
-                }
+                // while (!over.get())
+                // {
+                return resourceReponse(in, projectName + ".zip");
+                // }
             }
         } catch (IOException e)
         {

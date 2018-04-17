@@ -37,8 +37,10 @@ public abstract class AbstractZipProject
 
     private void createZip(Path p, ZipOutputStream zout)
     {
+        log.debug("Path:{}",p);
         boolean isFile = !Files.isDirectory(p);
         String fileName = path().relativize(p).toString() + (isFile ? "" : "/");
+        log.debug("fileName:{}",fileName);
         if (Objects.equals(fileName, "/"))
         {
             return;
