@@ -10,7 +10,6 @@ import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -74,7 +73,6 @@ public class ProjectServiceImpl implements ProjectService
         {
             PipedInputStream in = new PipedInputStream();
             final PipedOutputStream out = new PipedOutputStream(in);
-            // AtomicBoolean over = new AtomicBoolean(false);
             if (op.isPresent())
             {
                 new Thread(() ->
@@ -82,17 +80,13 @@ public class ProjectServiceImpl implements ProjectService
                     try
                     {
                         out.write(op.get().createZipOutputStream().toByteArray());
-                        // over.set(true);
                         out.close();
                     } catch (IOException e)
                     {
                         log.error(LogUtil.errorInfo(e));
                     }
                 }).start();
-                // while (!over.get())
-                // {
                 return resourceReponse(in, projectName + ".zip");
-                // }
             }
         } catch (IOException e)
         {
