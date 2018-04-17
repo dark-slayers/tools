@@ -5,10 +5,7 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URLEncoder;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 import javax.servlet.http.HttpSession;
@@ -18,14 +15,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import person.liuxx.tools.config.ElConfig;
 import person.liuxx.tools.dto.ReactProjectDTO;
-import person.liuxx.tools.project.ReactProject;
+import person.liuxx.tools.dto.SpringBootProjectDTO;
+import person.liuxx.tools.project.ZipProject;
 import person.liuxx.tools.service.ProjectService;
 import person.liuxx.util.log.LogUtil;
 import person.liuxx.util.service.reponse.EmptySuccedResponse;
@@ -46,23 +43,63 @@ public class ProjectServiceImpl implements ProjectService
     private ElConfig elConfig;
 
     @Override
-    public ResponseEntity<Resource> springbootProject()
+    public Optional<EmptySuccedResponse> createSessionReactProject(ReactProjectDTO project,
+            HttpSession session)
     {
-        ResponseEntity<Resource> result = null;
-        Path file = Paths.get("");
-        Resource resource = null;
+        return Optional.ofNullable(elConfig)
+                .flatMap(el -> el.reactProjectPath())
+                .map(p -> project.mapToProject(p))
+                .flatMap(p -> createSessionProject(p, session, REACT_PROJECT));
+    }
+
+    @Override
+    public Optional<ResponseEntity<Resource>> getReactProject(HttpSession session)
+    {
+        return getSessionResource(session, REACT_PROJECT);
+    }
+
+    @Override
+    public Optional<EmptySuccedResponse> createSessionSpringBootProject(
+            SpringBootProjectDTO project, HttpSession session)
+    {
+        return Optional.ofNullable(elConfig)
+                .flatMap(el -> el.springbootProjectPath())
+                .map(p -> project.mapToProject(p))
+                .flatMap(p -> createSessionProject(p, session, SPRING_BOOT_PROJECT));
+    }
+
+    @Override
+    public Optional<ResponseEntity<Resource>> getSpringBootProject(HttpSession session)
+    {
+        return getSessionResource(session, SPRING_BOOT_PROJECT);
+    }
+
+    private Optional<EmptySuccedResponse> createSessionProject(ZipProject p, HttpSession session,
+            String key)
+    {
         try
         {
-            resource = new UrlResource(file.toUri());
-            result = ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''"
-                            + URLEncoder.encode("合并后的表格.xlsx", "UTF-8") + "")
-                    .body(resource);
-        } catch (MalformedURLException | UnsupportedEncodingException e)
+            PipedInputStream in = new PipedInputStream();
+            final PipedOutputStream out = new PipedOutputStream(in);
+            new Thread(() ->
+            {
+                try
+                {
+                    out.write(p.createZipOutputStream().toByteArray());
+                    out.close();
+                } catch (IOException e)
+                {
+                    log.error(LogUtil.errorInfo(e));
+                }
+            }).start();
+            ResponseEntity<Resource> r = resourceReponse(in, p.getProjectName() + ".zip");
+            session.setAttribute(key, r);
+            return Optional.of(new EmptySuccedResponse());
+        } catch (IOException e)
         {
-            log.error("获取资源时发生异常：" + e);
+            log.error(LogUtil.errorInfo(e));
         }
-        return result;
+        return Optional.empty();
     }
 
     private ResponseEntity<Resource> resourceReponse(InputStream in, String fileName)
@@ -76,48 +113,11 @@ public class ProjectServiceImpl implements ProjectService
                 .body(resource);
     }
 
-    @Override
-    public Optional<EmptySuccedResponse> createSessionReactProject(ReactProjectDTO project,
-            HttpSession session)
-    {
-        Optional<ReactProject> op = Optional.ofNullable(elConfig)
-                .flatMap(el -> el.reactProjectPath())
-                .map(p -> project.mapToProject(p));
-        try
-        {
-            PipedInputStream in = new PipedInputStream();
-            final PipedOutputStream out = new PipedOutputStream(in);
-            if (op.isPresent())
-            {
-                new Thread(() ->
-                {
-                    try
-                    {
-                        out.write(op.get().createZipOutputStream().toByteArray());
-                        out.close();
-                    } catch (IOException e)
-                    {
-                        log.error(LogUtil.errorInfo(e));
-                    }
-                }).start();
-                ResponseEntity<Resource> r = resourceReponse(in, op.get().getProjectName()
-                        + ".zip");
-                session.setAttribute(REACT_PROJECT, r);
-                return Optional.of(new EmptySuccedResponse());
-            }
-        } catch (IOException e)
-        {
-            log.error(LogUtil.errorInfo(e));
-        }
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<ResponseEntity<Resource>> getReactProject(HttpSession session)
+    private Optional<ResponseEntity<Resource>> getSessionResource(HttpSession session, String key)
     {
         @SuppressWarnings("unchecked")
-        ResponseEntity<Resource> r = (ResponseEntity<Resource>) session.getAttribute(REACT_PROJECT);
-        session.removeAttribute(REACT_PROJECT);
+        ResponseEntity<Resource> r = (ResponseEntity<Resource>) session.getAttribute(key);
+        session.removeAttribute(key);
         return Optional.ofNullable(r);
     }
 }

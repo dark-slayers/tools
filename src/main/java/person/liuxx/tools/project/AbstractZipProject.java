@@ -20,7 +20,7 @@ import person.liuxx.util.log.LogUtil;
  *          创建时间：2018年4月16日 下午4:14:14
  * @since 1.0.0
  */
-public abstract class AbstractZipProject
+public abstract class AbstractZipProject implements ZipProject
 {
     private Logger log = LoggerFactory.getLogger(AbstractZipProject.class);
 

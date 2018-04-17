@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import person.liuxx.tools.dto.ReactProjectDTO;
+import person.liuxx.tools.dto.SpringBootProjectDTO;
 import person.liuxx.tools.exception.CreateZipException;
 import person.liuxx.tools.service.ProjectService;
 import person.liuxx.util.service.reponse.EmptySuccedResponse;
@@ -30,29 +31,50 @@ public class ProjectController
 
     @GetMapping(value = "/project/springboot/zipfile")
     @ResponseBody
-    public ResponseEntity<Resource> springbootProject()
+    public ResponseEntity<Resource> springBootProjectZipFile(HttpSession session)
     {
-        return projectService.springbootProject();
+        return projectService.getSpringBootProject(session).<CreateZipException> orElseThrow(() ->
+        {
+            throw messageException(session);
+        });
+    }
+
+    @PostMapping(value = "/project/springboot/sessionfile")
+    @ResponseBody
+    public EmptySuccedResponse springBootProjectSessionFile(
+            @RequestBody SpringBootProjectDTO project, HttpSession session)
+    {
+        return projectService.createSessionSpringBootProject(project, session)
+                .<CreateZipException> orElseThrow(() ->
+                {
+                    throw new CreateZipException("生成zip文件失败，生成参数：" + project);
+                });
     }
 
     @GetMapping(value = "/project/react/zipfile")
     @ResponseBody
-    public ResponseEntity<Resource> reactProjectZipFileTest(HttpSession session)
+    public ResponseEntity<Resource> reactProjectZipFile(HttpSession session)
     {
         return projectService.getReactProject(session).<CreateZipException> orElseThrow(() ->
         {
-            throw new CreateZipException("获取session中的ZIP文件资源失败，session id :" + session.getId());
+            throw messageException(session);
         });
     }
 
     @PostMapping(value = "/project/react/sessionfile")
     @ResponseBody
-    public EmptySuccedResponse reactProjectZipFile(@RequestBody ReactProjectDTO project,
+    public EmptySuccedResponse reactProjectSessionFile(@RequestBody ReactProjectDTO project,
             HttpSession session)
     {
-        return projectService.createSessionReactProject(project, session).<CreateZipException> orElseThrow(() ->
-        {
-            throw new CreateZipException("生成zip文件失败，生成参数：" + project);
-        });
+        return projectService.createSessionReactProject(project, session)
+                .<CreateZipException> orElseThrow(() ->
+                {
+                    throw new CreateZipException("生成zip文件失败，生成参数：" + project);
+                });
+    }
+
+    private CreateZipException messageException(HttpSession session)
+    {
+        return new CreateZipException("获取session中的ZIP文件资源失败，session id :" + session.getId());
     }
 }

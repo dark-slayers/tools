@@ -8,6 +8,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
 import person.liuxx.tools.dto.ReactProjectDTO;
+import person.liuxx.tools.dto.SpringBootProjectDTO;
 import person.liuxx.util.service.reponse.EmptySuccedResponse;
 
 /**
@@ -18,7 +19,10 @@ import person.liuxx.util.service.reponse.EmptySuccedResponse;
  */
 public interface ProjectService
 {
-    ResponseEntity<Resource> springbootProject();
+    Optional<EmptySuccedResponse> createSessionSpringBootProject(SpringBootProjectDTO project,
+            HttpSession session);
+
+    Optional<ResponseEntity<Resource>> getSpringBootProject(HttpSession session);
 
     /**
      * @author 刘湘湘

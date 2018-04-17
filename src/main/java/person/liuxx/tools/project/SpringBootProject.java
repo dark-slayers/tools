@@ -1,5 +1,7 @@
 package person.liuxx.tools.project;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 
 /**
@@ -8,8 +10,9 @@ import java.nio.file.Path;
  *          创建时间：2018年3月30日 下午5:00:27
  * @since 1.0.0
  */
-public class SpringBootProject
+public class SpringBootProject extends AbstractZipProject
 {
+    private Path path;
     private Path rootPath;
     private String projectName;
     private String sqlName;
@@ -64,5 +67,19 @@ public class SpringBootProject
     public void setIndexHtml(String indexHtml)
     {
         this.indexHtml = indexHtml;
+    }
+
+    @Override
+    protected InputStream createInputStream(Path p) throws IOException
+    {
+        // TODO 自动生成的方法存根
+        return null;
+    }
+
+    @Override
+    protected Path path()
+    {
+
+        return path;
     }
 }
