@@ -19,10 +19,7 @@ import person.liuxx.util.service.reponse.EmptySuccedResponse;
  */
 public interface ProjectService
 {
-    Optional<EmptySuccedResponse> createSessionSpringBootProject(SpringBootProjectDTO project,
-            HttpSession session);
-
-    Optional<ResponseEntity<Resource>> getSpringBootProject(HttpSession session);
+    Optional<EmptySuccedResponse> updateSpringBootProject(SpringBootProjectDTO project);
 
     /**
      * @author 刘湘湘

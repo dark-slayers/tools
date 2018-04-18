@@ -1,6 +1,7 @@
 package person.liuxx.tools.dto;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import person.liuxx.tools.project.SpringBootProject;
 
@@ -12,50 +13,50 @@ import person.liuxx.tools.project.SpringBootProject;
  */
 public class SpringBootProjectDTO
 {
-    private String projectName;
-    private String description;
-    private String license;
+    private String sqlName;
+    private String path;
+    private String packagePath;
 
-    public SpringBootProject mapToProject(Path path)
+    public SpringBootProject mapToProject(Path templatePath)
     {
-        //TODO
-        return new SpringBootProject();
+        return new SpringBootProject(Paths.get(path), packagePath, sqlName, templatePath);
     }
 
-    public String getProjectName()
+    public String getSqlName()
     {
-        return projectName;
+        return sqlName;
     }
 
-    public void setProjectName(String projectName)
+    public void setSqlName(String sqlName)
     {
-        this.projectName = projectName;
+        this.sqlName = sqlName;
     }
 
-    public String getDescription()
+    public String getPath()
     {
-        return description;
+        return path;
     }
 
-    public void setDescription(String description)
+    public void setPath(String path)
     {
-        this.description = description;
+        this.path = path;
     }
 
-    public String getLicense()
+    public String getPackagePath()
     {
-        return license;
+        return packagePath;
     }
 
-    public void setLicense(String license)
+    public void setPackagePath(String packagePath)
     {
-        this.license = license;
+        this.packagePath = packagePath;
     }
 
     @Override
     public String toString()
     {
-        return "ReactProjectDTO [projectName=" + projectName + ", description=" + description
-                + ", license=" + license + "]";
+        return "SpringBootProjectDTO [sqlName=" + sqlName + ", path=" + path + ", packagePath="
+                + packagePath + "]";
     }
+    
 }

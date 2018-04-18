@@ -38,7 +38,6 @@ public class ProjectServiceImpl implements ProjectService
 {
     private Logger log = LoggerFactory.getLogger(ProjectServiceImpl.class);
     private static final String REACT_PROJECT = "React";
-    private static final String SPRING_BOOT_PROJECT = "SpringBoot";
     @Autowired
     private ElConfig elConfig;
 
@@ -59,19 +58,23 @@ public class ProjectServiceImpl implements ProjectService
     }
 
     @Override
-    public Optional<EmptySuccedResponse> createSessionSpringBootProject(
-            SpringBootProjectDTO project, HttpSession session)
+    public Optional<EmptySuccedResponse> updateSpringBootProject(SpringBootProjectDTO project)
     {
         return Optional.ofNullable(elConfig)
                 .flatMap(el -> el.springbootProjectPath())
                 .map(p -> project.mapToProject(p))
-                .flatMap(p -> createSessionProject(p, session, SPRING_BOOT_PROJECT));
-    }
-
-    @Override
-    public Optional<ResponseEntity<Resource>> getSpringBootProject(HttpSession session)
-    {
-        return getSessionResource(session, SPRING_BOOT_PROJECT);
+                .map(p ->
+                {
+                    try
+                    {
+                        p.update();
+                        return new EmptySuccedResponse();
+                    } catch (IOException e)
+                    {
+                        log.error(LogUtil.errorInfo(e));
+                        return null;
+                    }
+                });
     }
 
     private Optional<EmptySuccedResponse> createSessionProject(ZipProject p, HttpSession session,

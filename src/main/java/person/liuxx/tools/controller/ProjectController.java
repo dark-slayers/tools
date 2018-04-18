@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -29,23 +30,13 @@ public class ProjectController
     @Autowired
     private ProjectService projectService;
 
-    @GetMapping(value = "/project/springboot/zipfile")
+    @PutMapping(value = "/project/springboot/config")
     @ResponseBody
-    public ResponseEntity<Resource> springBootProjectZipFile(HttpSession session)
+    public EmptySuccedResponse updateSpringBootProjectConfig(
+            @RequestBody SpringBootProjectDTO project)
     {
-        return projectService.getSpringBootProject(session).<CreateZipException> orElseThrow(() ->
-        {
-            throw messageException(session);
-        });
-    }
-
-    @PostMapping(value = "/project/springboot/sessionfile")
-    @ResponseBody
-    public EmptySuccedResponse springBootProjectSessionFile(
-            @RequestBody SpringBootProjectDTO project, HttpSession session)
-    {
-        return projectService.createSessionSpringBootProject(project, session)
-                .<CreateZipException> orElseThrow(() ->
+        return projectService.updateSpringBootProject(project).<CreateZipException> orElseThrow(
+                () ->
                 {
                     throw new CreateZipException("生成zip文件失败，生成参数：" + project);
                 });
