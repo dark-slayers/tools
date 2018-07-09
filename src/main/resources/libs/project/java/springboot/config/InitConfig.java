@@ -20,16 +20,16 @@ import com.alibaba.druid.support.http.WebStatFilter;
 public class InitConfig
 {
     @Bean
-    public ServletRegistrationBean servletRegistrationBean()
+    public ServletRegistrationBean<StatViewServlet> servletRegistrationBean()
     {
         // Druid数据源配置
-        return new ServletRegistrationBean(new StatViewServlet(), "/druid/*");
+        return new ServletRegistrationBean<StatViewServlet>(new StatViewServlet(), "/druid/*");
     }
 
     @Bean
-    public FilterRegistrationBean filterRegistrationBean()
+    public FilterRegistrationBean<WebStatFilter> filterRegistrationBean()
     {
-        FilterRegistrationBean registrationBean = new FilterRegistrationBean();
+        FilterRegistrationBean<WebStatFilter> registrationBean = new FilterRegistrationBean<>();
         // Druid数据源配置
         registrationBean.setFilter(new WebStatFilter());
         return registrationBean;
