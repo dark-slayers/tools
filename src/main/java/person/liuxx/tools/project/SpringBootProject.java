@@ -119,8 +119,15 @@ public class SpringBootProject
 
     private void updateLogXML() throws IOException
     {
-        Path logTemplate = templatePath.resolve("log4j2.xml");
-        Path logTargetPath = projectPath.resolve("src/main/resources/log4j2.xml");
+        Path logTemplate = templatePath.resolve("log4j2-dev.xml");
+        Path logTargetPath = projectPath.resolve("src/main/resources/log4j2-dev.xml");
+        if (FileUtil.existsFile(logTargetPath))
+        {
+            return;
+        }
+        copyAndChange(logTemplate, logTargetPath);
+        logTemplate = templatePath.resolve("log4j2-prod.xml");
+        logTargetPath = projectPath.resolve("src/main/resources/log4j2-prod.xml");
         if (FileUtil.existsFile(logTargetPath))
         {
             return;

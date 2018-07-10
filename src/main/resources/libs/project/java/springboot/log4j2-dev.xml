@@ -3,8 +3,9 @@
 	<Properties>
 		<Property name="log_dir">D:/logs/${projectName}</Property>
 		<Property name="log_date">%d{yy-MM-dd 'at' HH:mm:ss SSS}</Property>
+		<Property name="log_user">--(%X{address}:%X{user})--</Property>
 		<Property name="log_content">[%-5level] %class{36} (%M) :%L -> %msg%xEx%n</Property>
-		<Property name="log_text">${log_date} ${log_content}</Property>
+		<Property name="log_text">${log_date} ${log_user} ${log_content}</Property>
 	</Properties>
 	<appenders>
 		<!--输出控制台的配置 -->
@@ -12,7 +13,7 @@
 			name="Console"
 			target="SYSTEM_OUT">
 			<!--输出日志的格式 -->
-			<PatternLayout pattern="%d{HH:mm:ss.SSS} ${log_content}" />
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [${log_user}] ${log_content}" />
 		</Console>
 		<!--这个会打印出所有的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档 -->
 		<RollingFile
@@ -60,13 +61,21 @@
 			additivity="false">
 			<AppenderRef
 				ref="ErrorFile"
-				level="ERROR"/>
+				level="ERROR" />
 			<AppenderRef
 				ref="Console"
-				level="INFO"/>
+				level="INFO" />
 		</Logger>
 		<Logger
 			name="org.springframework"
+			level="WARN"
+			additivity="false" />
+		<Logger
+			name="com.alibaba"
+			level="WARN"
+			additivity="false" />
+		<Logger
+			name="druid"
 			level="WARN"
 			additivity="false" />
 		<Logger
@@ -77,7 +86,9 @@
 			name="org.apache"
 			level="WARN"
 			additivity="false" />
-		<Root level="DEBUG" additivity="false">
+		<Root
+			level="DEBUG"
+			additivity="false">
 			<AppenderRef ref="DebugFile" />
 			<AppenderRef
 				ref="InfoFile"
