@@ -58,5 +58,4 @@ public class SpringBootProjectDTO
         return "SpringBootProjectDTO [sqlName=" + sqlName + ", path=" + path + ", packagePath="
                 + packagePath + "]";
     }
-    
 }

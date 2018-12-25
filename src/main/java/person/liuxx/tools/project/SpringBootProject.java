@@ -4,11 +4,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -16,18 +17,15 @@ import java.util.stream.Collectors;
 import person.liuxx.util.file.DirUtil;
 import person.liuxx.util.file.FileUtil;
 
-/**
- * @author 刘湘湘
- * @version 1.0.0<br>
- *          创建时间：2018年3月30日 下午5:00:27
- * @since 1.0.0
- */
 public class SpringBootProject
 {
     private final Path projectPath;
     private final Path templatePath;
     private final String packagePath;
     private Map<String, String> map;
+    private static final String PATH_RESOURCES = "src/main/resources/";
+    private static final String PATH_JAVA = "src/main/java/";
+    private static final String PATH_STATIC = "src/main/resources/static/";
 
     public SpringBootProject(Path projectPath, String packagePath, String schenmaName,
             Path templatePath)
@@ -53,22 +51,9 @@ public class SpringBootProject
         copyIndexHtml();
     }
 
-    /**
-     * @author 刘湘湘
-     * @version 1.0.0<br>
-     *          创建时间：2018年1月2日 上午9:31:02
-     * @throws IOException
-     * @since 1.0.0
-     */
     private void copyIndexHtml() throws IOException
     {
-        Path indexTemplate = templatePath.resolve("index.html");
-        Path indexTargetPath = projectPath.resolve("src/main/resources/static/index.html");
-        if (FileUtil.existsFile(indexTargetPath))
-        {
-            return;
-        }
-        copyAndChange(indexTemplate, indexTargetPath);
+        checkAndCopy(templatePath, projectPath.resolve(PATH_STATIC), "index.html");
     }
 
     private void addReadmeFile() throws IOException
@@ -87,52 +72,19 @@ public class SpringBootProject
     private void updateGitignore() throws IOException
     {
         Path gitignoreFile = projectPath.resolve(".gitignore");
-        List<String> lines = Files.lines(gitignoreFile).map(l ->
-        {
-            String t = l.trim();
-            switch (t)
-            {
-            case ".settings":
-                {
-                    return "";
-                }
-            case ".classpath":
-                {
-                    return "";
-                }
-            case ".project":
-                {
-                    return "";
-                }
-            default:
-                {
-                    return l;
-                }
-            }
-        }).collect(Collectors.toList());
-        if (!lines.contains("src/main/resources/static/views/"))
-        {
-            lines.add(1, "src/main/resources/static/views/");
-        }
+        Set<String> needReplaceBlankSet = Arrays.stream(new String[]
+        { ".settings", ".classpath", ".project" }).collect(Collectors.toSet());
+        List<String> lines = Files.lines(gitignoreFile)
+                .map(l -> l.trim())
+                .map(t -> needReplaceBlankSet.contains(t) ? "" : t)
+                .collect(Collectors.toList());
         Files.write(gitignoreFile, lines);
     }
 
     private void updateLogXML() throws IOException
     {
-        Path logTemplate = templatePath.resolve("log4j2-dev.xml");
-        Path logTargetPath = projectPath.resolve("src/main/resources/log4j2-dev.xml");
-        if (FileUtil.existsFile(logTargetPath))
-        {
-            return;
-        }
-        copyAndChange(logTemplate, logTargetPath);
-        logTemplate = templatePath.resolve("log4j2-prod.xml");
-        logTargetPath = projectPath.resolve("src/main/resources/log4j2-prod.xml");
-        if (FileUtil.existsFile(logTargetPath))
-        {
-            return;
-        }
-        copyAndChange(logTemplate, logTargetPath);
+        checkAndCopy(templatePath, projectPath.resolve(PATH_RESOURCES), "log4j2-dev.xml");
+        checkAndCopy(templatePath, projectPath.resolve(PATH_RESOURCES), "log4j2-prod.xml");
     }
 
     private void updatePOM() throws IOException
@@ -148,11 +100,7 @@ public class SpringBootProject
         for (int i = 0, max = pomList.size(); i < max; i++)
         {
             String l = pomList.get(i).trim();
-            if (Objects.equals("<properties>", l))
-            {
-                remove = true;
-            }
-            if (Objects.equals("<dependencies>", l))
+            if (Objects.equals("<properties>", l) || Objects.equals("<dependencies>", l))
             {
                 remove = true;
             }
@@ -160,11 +108,7 @@ public class SpringBootProject
             {
                 removeSet.add(i);
             }
-            if (Objects.equals("</properties>", l))
-            {
-                remove = false;
-            }
-            if (Objects.equals("</dependencies>", l))
+            if (Objects.equals("</properties>", l) || Objects.equals("</dependencies>", l))
             {
                 remove = false;
             }
@@ -187,47 +131,48 @@ public class SpringBootProject
 
     private void updateApplicationProperties() throws IOException
     {
-        Path targetDir = projectPath.resolve("src/main/resources");
-        if (FileUtil.existsFile(targetDir.resolve("application-dev.properties")))
+        Path targetDir = projectPath.resolve(PATH_RESOURCES);
+        if (DirUtil.existsDir(targetDir.resolve("META-INF")))
         {
             return;
         }
-        List<String> lines = Files.readAllLines(templatePath.resolve("application.properties"));
-        Files.write(targetDir.resolve("application.properties"), lines);
-        copyAndChange(templatePath.resolve("application-dev.properties"), targetDir.resolve(
-                "application-dev.properties"));
-        copyAndChange(templatePath.resolve("application-prod.properties"), targetDir.resolve(
-                "application-prod.properties"));
         DirUtil.copy(templatePath.resolve("META-INF"), targetDir.resolve("META-INF"));
+        checkAndCopy(templatePath, targetDir, "application.properties");
+        checkAndCopy(templatePath, targetDir, "application-dev.properties");
+        checkAndCopy(templatePath, targetDir, "application-prod.properties");
     }
 
     private void addConfigClass() throws IOException
     {
         Path tempDir = templatePath.resolve("config");
-        Path targetDir = projectPath.resolve("src/main/java")
+        Path targetDir = projectPath.resolve(PATH_JAVA)
                 .resolve(packagePath.replace(".", "/"))
                 .resolve("config");
-        if (FileUtil.existsFile(targetDir.resolve("SwaggerConfig.java")))
-        {
-            return;
-        }
-        if (!DirUtil.exists(targetDir))
-        {
-            Files.createDirectories(targetDir);
-        }
-        copyAndChange(tempDir.resolve("SwaggerConfig.java"), targetDir.resolve(
-                "SwaggerConfig.java"));
-        copyAndChange(tempDir.resolve("InitConfig.java"), targetDir.resolve("InitConfig.java"));
-        copyAndChange(tempDir.resolve("WebMvcConfig.java"), targetDir.resolve("WebMvcConfig.java"));
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>" + tempDir);
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>" + targetDir);
+        checkAndCopy(tempDir, targetDir, "SwaggerConfig.java");
+        checkAndCopy(tempDir, targetDir, "InitConfig.java");
+        checkAndCopy(tempDir, targetDir, "WebMvcConfig.java");
     }
 
     private void updateLogo()
     {
     }
 
-    private void copyAndChange(Path source, Path target) throws IOException
+    private void checkAndCopy(Path source, Path target, String fileName) throws IOException
     {
-        copyAndChange(source, target, l ->
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>" + target);
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>" + target.resolve(fileName));
+        if (FileUtil.existsFile(target.resolve(fileName)))
+        {
+            return;
+        }
+        copyAndChange(source, target, fileName);
+    }
+
+    private void copyAndChange(Path source, Path target, String fileName) throws IOException
+    {
+        List<String> lines = Files.lines(source.resolve(fileName)).map(l ->
         {
             if (l.contains("${"))
             {
@@ -244,13 +189,8 @@ public class SpringBootProject
                 }
             }
             return l;
-        });
-    }
-
-    private void copyAndChange(Path source, Path target, Function<String, String> mapper)
-            throws IOException
-    {
-        List<String> lines = Files.lines(source).map(mapper).collect(Collectors.toList());
-        Files.write(target, lines);
+        }).collect(Collectors.toList());
+        DirUtil.createDirIfNotExists(target);
+        Files.write(target.resolve(fileName), lines);
     }
 }
