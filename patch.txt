@@ -1,0 +1,44 @@
+项目问题：
+1、项目使用的org.springframework.boot版本号为2.0.3.RELEASE，需要修改pom里面的<parent>
+2、spingcloud项目缺少依赖包：
+<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>Finchley.RELEASE</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+3、需要增加spingcloud依赖，大多数版本号为1.4.6.RELEASE：
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-eureka</artifactId>
+	<version>1.4.6.RELEASE</version>
+</dependency>
+4、修改application.properties，增加springcloud属性：
+spring.application.name=api
+eureka.client.service-url.defaultZone=http://localhost:7001/eureka/
+5、springcloud项目与私有库自定义工作包存在依赖冲突，自定义工具包需要排除冲突依赖：
+<dependency>
+	<groupId>person.liuxx</groupId>
+	<artifactId>util</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<exclusions>
+		<exclusion>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+		</exclusion>
+	</exclusions>
+</dependency>
+6、log4j2过滤规则增加springcloud包：
+<Logger
+	name="com.netflix"
+	level="WARN"
+	additivity="false" />
+<Logger
+	name="org.apache"
+	level="WARN"
+	additivity="false" />

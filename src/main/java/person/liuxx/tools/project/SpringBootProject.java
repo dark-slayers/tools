@@ -1,5 +1,6 @@
 package person.liuxx.tools.project;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -163,7 +165,12 @@ public class SpringBootProject
     {
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>" + target);
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>" + target.resolve(fileName));
-        if (FileUtil.existsFile(target.resolve(fileName)))
+        Optional<File> targetFile = Optional.of(target)
+                .map(t -> t.resolve(fileName))
+                .filter(p -> FileUtil.existsFile(p))
+                .map(p -> p.toFile())
+                .filter(f -> f.length() > 10);
+        if (targetFile.isPresent())
         {
             return;
         }
