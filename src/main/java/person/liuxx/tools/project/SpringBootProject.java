@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -16,9 +15,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import person.liuxx.tools.exception.ReadFileException;
+import person.liuxx.tools.project.java.PomList;
 import person.liuxx.util.base.StringUtil;
 import person.liuxx.util.file.DirUtil;
+import person.liuxx.util.file.FileOperateException;
 import person.liuxx.util.file.FileUtil;
 
 public class SpringBootProject
@@ -33,6 +33,12 @@ public class SpringBootProject
     private static final String PATH_RESOURCES = "src/main/resources/";
     private static final String PATH_JAVA = "src/main/java/";
     private static final String PATH_STATIC = "src/main/resources/static/";
+    private static final String[] APPLICATION_CONFIG_FILES =
+    { "application.properties", "application-dev.properties", "application-prod.properties" };
+    private static final String[] JAVA_CONFIG_FILES =
+    { "SwaggerConfig.java", "InitConfig.java", "WebMvcConfig.java" };
+    private static final String[] LOG_CONFIG_FILES =
+    { "log4j2-dev.xml", "log4j2-prod.xml" };
 
     public SpringBootProject(Path projectPath, String packagePath, String schenmaName,
             Path templatePath)
@@ -50,157 +56,76 @@ public class SpringBootProject
     {
         addReadmeFile();
         updateGitignore();
-        updateLogXML();
         updatePOM();
-        updateApplicationProperties();
-        addConfigClass();
         updateLogo();
-        copyIndexHtml();
+        copyConfigFiles();
     }
 
-    private void copyIndexHtml() throws IOException
-    {
-        checkAndCopy(templatePath, projectPath.resolve(PATH_STATIC), "index.html");
-    }
-
-    private void addReadmeFile() throws IOException
+    private void addReadmeFile()
     {
         Path readmeFile = projectPath.resolve("README.md");
-        if (FileUtil.existsFile(readmeFile))
+        if (!FileUtil.existsFile(readmeFile))
         {
-            return;
+            String projectName = projectPath.getFileName().toString();
+            List<String> lines = new ArrayList<>();
+            lines.add("# " + projectName + "项目说明");
+            writeFile(readmeFile, lines);
         }
-        String projectName = projectPath.getFileName().toString();
-        List<String> lines = new ArrayList<>();
-        lines.add("# " + projectName + "项目说明");
-        Files.write(readmeFile, lines);
     }
 
-    private void updateGitignore() throws IOException
+    private void updateGitignore()
     {
         Path gitignoreFile = projectPath.resolve(".gitignore");
         Set<String> needReplaceBlankSet = Arrays.stream(new String[]
         { ".settings", ".classpath", ".project" }).collect(Collectors.toSet());
-        List<String> lines = Files.lines(gitignoreFile)
-                .map(l -> l.trim())
+        List<String> lines = readFile(gitignoreFile).map(l -> l.trim())
                 .map(t -> needReplaceBlankSet.contains(t) ? "" : t)
                 .collect(Collectors.toList());
-        Files.write(gitignoreFile, lines);
-    }
-
-    private void updateLogXML() throws IOException
-    {
-        checkAndCopy(templatePath, projectPath.resolve(PATH_RESOURCES), "log4j2-dev.xml");
-        checkAndCopy(templatePath, projectPath.resolve(PATH_RESOURCES), "log4j2-prod.xml");
-    }
-
-    class PomList extends ArrayList<String>
-    {
-        int parentVersionLineIndex = -1;
-        int startRemoveLineIndex = -1;
-        int endRemoveLineIndex = -1;
-        List<String> dependencieList = new ArrayList<>();
-        /**
-         * 
-         */
-        private static final long serialVersionUID = 4287999987986654493L;
-
-        void readPom(Path pomPath, Path templatePath)
-        {
-            try
-            {
-                dependencieList = Files.readAllLines(templatePath);
-                addAll(Files.readAllLines(pomPath));
-                for (int i = 0, max = size(); i < max; i++)
-                {
-                    String l = get(i).trim();
-                    if (Objects.equals("<artifactId>spring-boot-starter-parent</artifactId>", l)
-                            && (i + 1) < max)
-                    {
-                        parentVersionLineIndex = i + 1;
-                    }
-                    if (Objects.equals("<properties>", l))
-                    {
-                        startRemoveLineIndex = i;
-                    }
-                    if (Objects.equals("</dependencies>", l))
-                    {
-                        endRemoveLineIndex = i;
-                    }
-                }
-            } catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-        }
-
-        void updatePom()
-        {
-            if (parentVersionLineIndex > 0)
-            {
-                set(parentVersionLineIndex, "\t\t<version>2.0.3.RELEASE</version>");
-            }
-            if (startRemoveLineIndex > 0 && endRemoveLineIndex > startRemoveLineIndex
-                    && endRemoveLineIndex < size())
-            {
-                removeRange(startRemoveLineIndex, endRemoveLineIndex + 1);
-            }
-            for (int i = 0, max = size(); i < max; i++)
-            {
-                String l = get(i).trim();
-                if (Objects.equals("</parent>", l))
-                {
-                    addAll(i + 1, dependencieList);
-                }
-            }
-        }
-
-        boolean isUpdate()
-        {
-            return this.stream().anyMatch(l -> l.contains("<swagger.version>"));
-        }
+        writeFile(gitignoreFile, lines);
     }
 
     public void updatePOM() throws IOException
     {
         PomList pomList = new PomList();
         pomList.readPom(projectPath.resolve("pom.xml"), templatePath.resolve("pom.xml"));
-        if (pomList.isUpdate())
-        {
-            return;
-        } else
+        if (!pomList.isUpdate())
         {
             pomList.updatePom();
+            writeFile(projectPath.resolve("pom.xml"), pomList);
         }
-        Files.write(projectPath.resolve("pom.xml"), pomList);
-    }
-
-    private void updateApplicationProperties() throws IOException
-    {
-        Path targetDir = projectPath.resolve(PATH_RESOURCES);
-        if (DirUtil.existsDir(targetDir.resolve("META-INF")))
-        {
-            return;
-        }
-        DirUtil.copy(templatePath.resolve("META-INF"), targetDir.resolve("META-INF"));
-        checkAndCopy(templatePath, targetDir, "application.properties");
-        checkAndCopy(templatePath, targetDir, "application-dev.properties");
-        checkAndCopy(templatePath, targetDir, "application-prod.properties");
-    }
-
-    private void addConfigClass() throws IOException
-    {
-        Path tempDir = templatePath.resolve("config");
-        Path targetDir = projectPath.resolve(PATH_JAVA)
-                .resolve(packagePath.replace(".", "/"))
-                .resolve("config");
-        checkAndCopy(tempDir, targetDir, "SwaggerConfig.java");
-        checkAndCopy(tempDir, targetDir, "InitConfig.java");
-        checkAndCopy(tempDir, targetDir, "WebMvcConfig.java");
     }
 
     private void updateLogo()
     {
+    }
+
+    private void copyConfigFiles()
+    {
+        copyFiles(templatePath, projectPath.resolve(PATH_RESOURCES), LOG_CONFIG_FILES);
+        checkAndCopy(templatePath, projectPath.resolve(PATH_STATIC), "index.html");
+        Path targetDir = projectPath.resolve(PATH_RESOURCES);
+        if (!DirUtil.existsDir(targetDir.resolve("META-INF")))
+        {
+            DirUtil.copy(templatePath.resolve("META-INF"), targetDir.resolve("META-INF"));
+        }
+        copyFiles(templatePath, targetDir, APPLICATION_CONFIG_FILES);
+        copyConfigJavaFiles();
+    }
+
+    private void copyConfigJavaFiles()
+    {
+        Path targetDir = projectPath.resolve(PATH_JAVA)
+                .resolve(packagePath.replace(".", "/"))
+                .resolve("config");
+        copyFiles(templatePath.resolve("config"), targetDir, JAVA_CONFIG_FILES);
+    }
+
+    private void copyFiles(Path source, Path target, String[] fileNames)
+    {
+        for (String fileName : fileNames)
+        {
+            checkAndCopy(source, target, fileName);
+        }
     }
 
     /**
@@ -219,55 +144,63 @@ public class SpringBootProject
      * @return
      * @throws IOException
      */
-    public boolean checkAndCopy(Path source, Path target, String fileName) throws IOException
+    public boolean checkAndCopy(Path source, Path target, String fileName)
     {
         long notEmptyLineCount = Optional.of(target)
                 .map(t -> t.resolve(fileName))
                 .filter(p -> FileUtil.existsFile(p))
-                .map(p -> getStream(p))
+                .map(p -> readFile(p))
                 .orElse(Stream.of(""))
                 .filter(s -> !StringUtil.isEmpty(s))
                 .count();
-        if (notEmptyLineCount > 1)
-        {
-            return false;
-        }
-        copyAndChange(source, target, fileName);
+        return (notEmptyLineCount > 1) ? false : copyAndChange(source, target, fileName);
+    }
+
+    private boolean copyAndChange(Path source, Path target, String fileName)
+    {
+        List<String> lines = readFile(source.resolve(fileName)).map(l -> replacePlaceholder(l))
+                .collect(Collectors.toList());
+        DirUtil.createDirIfNotExists(target);
+        writeFile(target.resolve(fileName), lines);
         return true;
     }
 
-    private Stream<String> getStream(Path p)
+    private String replacePlaceholder(String text)
+    {
+        if (!text.contains("${"))
+        {
+            return text;
+        }
+        Pattern pattern = Pattern.compile("\\$\\{\\w+?\\}");
+        Matcher matcher = pattern.matcher(text);
+        Optional<Matcher> optional = Optional.of(matcher);
+        return optional.filter(m -> m.find())
+                .map(m -> m.group(0))
+                .map(m -> m.substring(2, m.length() - 1))
+                .filter(k -> replaceMap.containsKey(k))
+                .map(key -> text.replace("${" + key + "}", replaceMap.get(key)))
+                .orElse(text);
+    }
+
+    private Stream<String> readFile(Path p)
     {
         try
         {
             return Files.lines(p);
         } catch (IOException e)
         {
-            throw new ReadFileException("获取文件内容失败！", e);
+            throw new FileOperateException("获取文件内容失败！", e);
         }
     }
 
-    private void copyAndChange(Path source, Path target, String fileName) throws IOException
+    private void writeFile(Path path, List<String> lines)
     {
-        List<String> lines = Files.lines(source.resolve(fileName)).map(l ->
+        try
         {
-            if (l.contains("${"))
-            {
-                Pattern pattern = Pattern.compile("\\$\\{\\w+?\\}");
-                Matcher matcher = pattern.matcher(l);
-                if (matcher.find())
-                {
-                    String matcherText = matcher.group(0);
-                    String key = matcherText.substring(2, matcherText.length() - 1);
-                    if (replaceMap.containsKey(key))
-                    {
-                        return l.replace("${" + key + "}", replaceMap.get(key));
-                    }
-                }
-            }
-            return l;
-        }).collect(Collectors.toList());
-        DirUtil.createDirIfNotExists(target);
-        Files.write(target.resolve(fileName), lines);
+            Files.write(path, lines);
+        } catch (IOException e)
+        {
+            throw new FileOperateException("写入文件失败！", e);
+        }
     }
 }

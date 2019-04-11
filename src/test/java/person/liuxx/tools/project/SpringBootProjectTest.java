@@ -62,16 +62,8 @@ public class SpringBootProjectTest
     public void testCheckAndCopy()
     {
         Path targetDir = projectPath.resolve(PATH_RESOURCES);
-        try
-        {
-            boolean successed = project.checkAndCopy(templatePath, targetDir,
-                    "application.properties");
-            assertTrue(successed);
-        } catch (IOException e)
-        {
-            // TODO 自动生成的 catch 块
-            e.printStackTrace();
-        }
+        boolean successed = project.checkAndCopy(templatePath, targetDir, "application.properties");
+        assertTrue(successed);
     }
 
     /**
