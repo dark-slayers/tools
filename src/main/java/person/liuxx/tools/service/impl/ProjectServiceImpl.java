@@ -7,6 +7,7 @@ import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpSession;
 
@@ -38,6 +39,8 @@ public class ProjectServiceImpl implements ProjectService
 {
     private Logger log = LoggerFactory.getLogger(ProjectServiceImpl.class);
     private static final String REACT_PROJECT = "React";
+    private static final int MAX_THREAD_NUMBER = 10;
+    private AtomicInteger threadNumber = new AtomicInteger(0);
     @Autowired
     private ElConfig elConfig;
 
@@ -84,20 +87,26 @@ public class ProjectServiceImpl implements ProjectService
         {
             PipedInputStream in = new PipedInputStream();
             final PipedOutputStream out = new PipedOutputStream(in);
-            new Thread(() ->
+            if (threadNumber.addAndGet(1) < MAX_THREAD_NUMBER)
             {
-                try
+                new Thread(() ->
                 {
-                    out.write(p.createZipOutputStream().toByteArray());
-                    out.close();
-                } catch (IOException e)
-                {
-                    log.error(LogUtil.errorInfo(e));
-                }
-            }).start();
-            ResponseEntity<Resource> r = resourceReponse(in, p.getProjectName() + ".zip");
-            session.setAttribute(key, r);
-            return Optional.of(new EmptySuccedResponse());
+                    try
+                    {
+                        out.write(p.createZipOutputStream().toByteArray());
+                        out.close();
+                    } catch (IOException e)
+                    {
+                        log.error(LogUtil.errorInfo(e));
+                    } finally
+                    {
+                        threadNumber.getAndDecrement();
+                    }
+                }).start();
+                ResponseEntity<Resource> r = resourceReponse(in, p.getProjectName() + ".zip");
+                session.setAttribute(key, r);
+                return Optional.of(new EmptySuccedResponse());
+            }
         } catch (IOException e)
         {
             log.error(LogUtil.errorInfo(e));

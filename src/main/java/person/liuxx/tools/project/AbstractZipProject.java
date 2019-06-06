@@ -6,12 +6,14 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import person.liuxx.util.file.FileUtil;
 import person.liuxx.util.log.LogUtil;
 
 /**
@@ -28,6 +30,7 @@ public abstract class AbstractZipProject implements ZipProject
     {
         ByteArrayOutputStream o = new ByteArrayOutputStream();
         ZipOutputStream zout = new ZipOutputStream(o);
+        log.debug("Zip dir :{}", path());
         Files.walk(path()).forEach(f ->
         {
             createZip(f, zout);
@@ -35,30 +38,37 @@ public abstract class AbstractZipProject implements ZipProject
         return o;
     }
 
-    private void createZip(Path p, ZipOutputStream zout)
+    private void createZip(Path path, ZipOutputStream zout)
     {
-        log.debug("Path:{}",p);
-        boolean isFile = !Files.isDirectory(p);
-        String fileName = path().relativize(p).toString() + (isFile ? "" : "/");
-        log.debug("fileName:{}",fileName);
-        if (Objects.equals(fileName, "/"))
+        log.debug("Path:{}", path);
+        if (FileUtil.existsFile(path))
         {
-            return;
+            Optional.ofNullable(path())
+                    .map(pa -> pa.relativize(path))
+                    .map(pa -> pa.toString())
+                    .filter(f -> !Objects.equals(f, "/"))
+                    .map(f -> Objects.equals("gitignore", f) ? ".gitignore" : f)
+                    .ifPresent(f ->
+                    {
+                        zip(f, zout, path);
+                    });
         }
+    }
+
+    private void zip(String fileName, ZipOutputStream zout, Path p)
+    {
+        log.debug("fileName:{}", fileName);
         try
         {
             ZipEntry ze = new ZipEntry(fileName);
             zout.putNextEntry(ze);
-            if (isFile)
+            try (InputStream fis = createInputStream(p);)
             {
-                try (InputStream fis = createInputStream(p);)
+                int j = 0;
+                byte[] buffer = new byte[1024];
+                while ((j = fis.read(buffer)) > 0)
                 {
-                    int j = 0;
-                    byte[] buffer = new byte[1024];
-                    while ((j = fis.read(buffer)) > 0)
-                    {
-                        zout.write(buffer, 0, j);
-                    }
+                    zout.write(buffer, 0, j);
                 }
             }
             zout.closeEntry();

@@ -39,7 +39,7 @@ public class PomList extends ArrayList<String>
                 }
                 if (Objects.equals("</parent>", l))
                 {
-                    addIndex = i;
+                    addIndex = i + 1;
                 }
                 if (Objects.equals("<properties>", l))
                 {
@@ -68,9 +68,9 @@ public class PomList extends ArrayList<String>
         {
             removeRange(startRemoveLineIndex, endRemoveLineIndex + 1);
         }
-        if (addIndex > 0)
+        if (addIndex > 1)
         {
-            addAll(addIndex + 1, dependencieList);
+            addAll(addIndex, dependencieList);
         }
     }
 
