@@ -21,7 +21,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
 		<personsl-util.version>1.3.0</personsl-util.version>
-		<fileupload.version>1.3.2</fileupload.version>
+		<fileupload.version>1.3.3</fileupload.version>
 		<swagger.version>2.7.0</swagger.version>
 	</properties>
 	<dependencies>
